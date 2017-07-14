@@ -29,6 +29,7 @@ typedef enum
 
 typedef enum
 {
+    SI1145_CMD_RESET     = 0x01,
     SI1145_CMD_PARAM_GET = 0x80,
     SI1145_CMD_PARAM_SET = 0xA0
 } SI1145_CMD;
@@ -51,6 +52,7 @@ static I2C_SPA_PARAMS params;
 static SI1145_RC si1145_check_reg(SI1145_REG reg, uint8_t expected);
 static SI1145_RC si1145_read_reg(SI1145_REG reg, uint8_t *data);
 static SI1145_RC si1145_write_reg(SI1145_REG reg, uint8_t data);
+static SI1145_RC si1145_write_check_reg(SI1145_REG reg, uint8_t data);
 static SI1145_RC si1145_check_ram(SI1145_RAM ram, uint8_t expected);
 static SI1145_RC si1145_read_ram(SI1145_RAM ram, uint8_t *data);
 static SI1145_RC si1145_write_ram(SI1145_RAM ram, uint8_t data);
@@ -79,6 +81,16 @@ static SI1145_RC si1145_write_reg(SI1145_REG reg, uint8_t data)
     uint8_t read_data;
 
     if (i2c_spa_write(&params, reg, 1, &data) != I2C_SPA_OK)
+    {
+        return SI1145_FAILURE;
+    }
+
+    return SI1145_OK;
+}
+
+static SI1145_RC si1145_write_check_reg(SI1145_REG reg, uint8_t data)
+{
+    if (si1145_write_reg(reg, data) != SI1145_OK)
     {
         return SI1145_FAILURE;
     }
@@ -124,7 +136,7 @@ static SI1145_RC si1145_write_ram(SI1145_RAM ram, uint8_t data)
 {
     SI1145_RC rc = SI1145_OK;
 
-    if (si1145_write_reg(SI1145_REG_PARAM_WR, data) != SI1145_OK ||
+    if (si1145_write_check_reg(SI1145_REG_PARAM_WR, data) != SI1145_OK ||
         si1145_send_cmd(SI1145_CMD_PARAM_SET, ram) != SI1145_OK)
     {
         return SI1145_FAILURE;
@@ -168,9 +180,10 @@ static SI1145_RC si1145_send_cmd(SI1145_CMD cmd, uint8_t cmd_low_bits)
 {
     uint8_t command_reg_val = (cmd | cmd_low_bits);
 
-    if (si1145_write_reg(SI1145_REG_COMMAND, 0x00) != SI1145_OK ||
+    if (si1145_write_check_reg(SI1145_REG_COMMAND, 0x00) != SI1145_OK ||
         si1145_write_reg(SI1145_REG_COMMAND, command_reg_val) != SI1145_OK )
     {
+        printf("Command error code: 0x%x\n", si1145_check_status());
         return SI1145_FAILURE;
     }
 
@@ -189,6 +202,16 @@ SI1145_RC si1145_init(const char *bus, uint8_t addr, uint8_t config_bitmap)
     {
         return SI1145_FAILURE;
     }
+
+    /* Reset device */
+    if (si1145_send_cmd(SI1145_CMD_RESET, 0x0) != SI1145_OK)
+    {
+        printf("Failed to initialize SI1145 (%s)\n", "Reset");
+        return SI1145_FAILURE;
+    }
+
+    /* TODO: add to platform spa library */
+    sleep(1);
 
     /* Check device */
     if (si1145_check_reg(SI1145_REG_PART_ID, SI1145_CONST_PART_ID) != SI1145_OK)
@@ -210,7 +233,7 @@ SI1145_RC si1145_init(const char *bus, uint8_t addr, uint8_t config_bitmap)
     }
 
     /* HW key */
-    if (si1145_write_reg(SI1145_REG_HW_KEY, SI1145_CONST_HW_KEY) != SI1145_OK)
+    if (si1145_write_check_reg(SI1145_REG_HW_KEY, SI1145_CONST_HW_KEY) != SI1145_OK)
     {
         printf("Failed to initialize SI1145 (%s)\n", "HW Key");
         return SI1145_FAILURE;
@@ -248,10 +271,10 @@ SI1145_RC si1145_init(const char *bus, uint8_t addr, uint8_t config_bitmap)
         }
 
         /* Default UV calibration coefficients */
-        if (si1145_write_reg(SI1145_REG_UCOEF0, SI1145_CONST_UCOEF0) != SI1145_OK ||
-            si1145_write_reg(SI1145_REG_UCOEF1, SI1145_CONST_UCOEF1) != SI1145_OK ||
-            si1145_write_reg(SI1145_REG_UCOEF2, SI1145_CONST_UCOEF2) != SI1145_OK ||
-            si1145_write_reg(SI1145_REG_UCOEF3, SI1145_CONST_UCOEF3) != SI1145_OK)
+        if (si1145_write_check_reg(SI1145_REG_UCOEF0, SI1145_CONST_UCOEF0) != SI1145_OK ||
+            si1145_write_check_reg(SI1145_REG_UCOEF1, SI1145_CONST_UCOEF1) != SI1145_OK ||
+            si1145_write_check_reg(SI1145_REG_UCOEF2, SI1145_CONST_UCOEF2) != SI1145_OK ||
+            si1145_write_check_reg(SI1145_REG_UCOEF3, SI1145_CONST_UCOEF3) != SI1145_OK)
         {
             printf("Failed to initialize SI1145 (%s)\n", "UCOEF");
             return SI1145_FAILURE;
@@ -266,19 +289,12 @@ SI1145_RC si1145_init(const char *bus, uint8_t addr, uint8_t config_bitmap)
     }
 
     uint8_t data;
-    if (si1145_read_ram(SI1145_RAM_CHLIST, &data) != SI1145_OK)
-    {
-        printf("read ram");
-        return SI1145_FAILURE;
-    }
+    si1145_read_ram(SI1145_RAM_CHLIST, &data);
     printf("CHLIST: 0x%x\n", data);
-
-    if (si1145_read_ram(SI1145_RAM_ALS_VIS_ADC_MISC, &data) != SI1145_OK)
-    {
-        printf("read ram");
-        return SI1145_FAILURE;
-    }
+    si1145_read_ram(SI1145_RAM_ALS_VIS_ADC_MISC, &data);
     printf("RAM ALS VIS ADC: 0x%x\n", data);
+    si1145_read_reg(SI1145_REG_UCOEF0, &data);
+    printf("UCOEF0: 0x%x\n", data);
 
     return SI1145_OK;
 }
