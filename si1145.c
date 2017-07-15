@@ -214,21 +214,11 @@ SI1145_RC si1145_init(const char *bus, uint8_t addr, uint8_t config_bitmap)
     sleep(1);
 
     /* Check device */
-    if (si1145_check_reg(SI1145_REG_PART_ID, SI1145_CONST_PART_ID) != SI1145_OK)
+    if (si1145_check_reg(SI1145_REG_PART_ID, SI1145_CONST_PART_ID) != SI1145_OK ||
+        si1145_check_reg(SI1145_REG_REV_ID, SI1145_CONST_REV_ID) != SI1145_OK ||
+        si1145_check_reg(SI1145_REG_SEQ_ID, SI1145_CONST_SEQ_ID) != SI1145_OK)
     {
-        printf("Failed to initialize SI1145 (%s)\n", "Part Id");
-        return SI1145_FAILURE;
-    }
-
-    if (si1145_check_reg(SI1145_REG_REV_ID, SI1145_CONST_REV_ID) != SI1145_OK)
-    {
-        printf("Failed to initialize SI1145 (%s)\n", "Rev Id");
-        return SI1145_FAILURE;
-    }
-
-    if (si1145_check_reg(SI1145_REG_SEQ_ID, SI1145_CONST_SEQ_ID) != SI1145_OK)
-    {
-        printf("Failed to initialize SI1145 (%s)\n", "Seq Id");
+        printf("Failed to initialize SI1145 (%s)\n", "Read Only checks");
         return SI1145_FAILURE;
     }
 
