@@ -9,11 +9,41 @@ static const int I2C_ADDR = 0x60;
 
 int main(int argv, char **argc)
 {
+    uint16_t vis_data;
+
     if (si1145_init(I2C_BUS, I2C_ADDR, SI1145_CONFIG_BIT_ALS | SI1145_CONFIG_BIT_UV) != SI1145_OK)
     {
         return 1;
     }
 
+    if (si1145_measurement_auto(SI1145_MEASUREMENT_ALS) != SI1145_OK)
+    {
+        return 1;
+    }
+
+    int i = 0;
+    while (i < 5)
+    {
+        sleep(2);
+        if (si1145_get_vis_data(&vis_data) != SI1145_OK)
+        {
+            return 1; 
+        }
+        printf("VIS_DATA: 0x%x\n", vis_data);
+        i++;
+    }
+
+    if (si1145_measurement_pause(SI1145_MEASUREMENT_ALS) != SI1145_OK)
+    {
+        return 1;
+    }
+
+    if (si1145_get_vis_data(&vis_data) != SI1145_OK)
+    {
+        return 1; 
+    }
+    printf("VIS_DATA: 0x%x\n", vis_data);
+    
     si1145_close();
 
     return 0;

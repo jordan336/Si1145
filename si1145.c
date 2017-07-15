@@ -6,18 +6,28 @@
 
 typedef enum
 {
-    SI1145_REG_PART_ID  = 0x00,
-    SI1145_REG_REV_ID   = 0x01,
-    SI1145_REG_SEQ_ID   = 0x02,
-    SI1145_REG_HW_KEY   = 0x07,
-    SI1145_REG_UCOEF0   = 0x13,
-    SI1145_REG_UCOEF1   = 0x14,
-    SI1145_REG_UCOEF2   = 0x15,
-    SI1145_REG_UCOEF3   = 0x16,
-    SI1145_REG_PARAM_WR = 0x17,
-    SI1145_REG_COMMAND  = 0x18,
-    SI1145_REG_RESPONSE = 0x20,
-    SI1145_REG_PARAM_RD = 0x2E,
+    SI1145_REG_PART_ID   = 0x00,
+    SI1145_REG_REV_ID    = 0x01,
+    SI1145_REG_SEQ_ID    = 0x02,
+    SI1145_REG_HW_KEY    = 0x07,
+    SI1145_REG_UCOEF0    = 0x13,
+    SI1145_REG_UCOEF1    = 0x14,
+    SI1145_REG_UCOEF2    = 0x15,
+    SI1145_REG_UCOEF3    = 0x16,
+    SI1145_REG_PARAM_WR  = 0x17,
+    SI1145_REG_COMMAND   = 0x18,
+    SI1145_REG_RESPONSE  = 0x20,
+    SI1145_REG_VIS_DATA0 = 0x22,
+    SI1145_REG_VIS_DATA1 = 0x23,
+    SI1145_REG_IR_DATA0  = 0x24,
+    SI1145_REG_IR_DATA1  = 0x25,
+    SI1145_REG_PS1_DATA0 = 0x26,
+    SI1145_REG_PS1_DATA1 = 0x27,
+    SI1145_REG_PS2_DATA0 = 0x28,
+    SI1145_REG_PS2_DATA1 = 0x29,
+    SI1145_REG_PS3_DATA0 = 0x2A,
+    SI1145_REG_PS3_DATA1 = 0x2B,
+    SI1145_REG_PARAM_RD  = 0x2E,
 } SI1145_REG;
 
 typedef enum
@@ -29,9 +39,18 @@ typedef enum
 
 typedef enum
 {
-    SI1145_CMD_RESET     = 0x01,
-    SI1145_CMD_PARAM_GET = 0x80,
-    SI1145_CMD_PARAM_SET = 0xA0
+    SI1145_CMD_RESET       = 0x01,
+    SI1145_CMD_PS_FORCE    = 0x05,
+    SI1145_CMD_ALS_FORCE   = 0x06,
+    SI1145_CMD_PSALS_FORCE = 0x07,
+    SI1145_CMD_PS_PAUSE    = 0x09,
+    SI1145_CMD_ALS_PAUSE   = 0x0A,
+    SI1145_CMD_PSALS_PAUSE = 0x0B,
+    SI1145_CMD_PS_AUTO     = 0x0D,
+    SI1145_CMD_ALS_AUTO    = 0x0E,
+    SI1145_CMD_PSALS_AUTO  = 0x0F,
+    SI1145_CMD_PARAM_GET   = 0x80,
+    SI1145_CMD_PARAM_SET   = 0xA0
 } SI1145_CMD;
 
 #define SI1145_CONST_REV_ID          0x00
@@ -300,15 +319,100 @@ SI1145_RC si1145_init(const char *bus, uint8_t addr, uint8_t config_bitmap)
         return SI1145_FAILURE;
     }
 
-    /* TODO: Remove */
-    uint8_t data;
-    si1145_read_ram(SI1145_RAM_CHLIST, &data);
-    printf("CHLIST: 0x%x\n", data);
-    si1145_read_ram(SI1145_RAM_ALS_VIS_ADC_MISC, &data);
-    printf("RAM ALS VIS ADC: 0x%x\n", data);
-    si1145_read_reg(SI1145_REG_UCOEF0, &data);
-    printf("UCOEF0: 0x%x\n", data);
+    return SI1145_OK;
+}
 
+SI1145_RC si1145_measurement_auto(SI1145_MEASUREMENT_QUANTITY quantity)
+{
+    SI1145_CMD cmd;
+    switch (quantity)
+    {
+        case SI1145_MEASUREMENT_PS:
+            cmd = SI1145_CMD_PS_AUTO;
+            break;
+        case SI1145_MEASUREMENT_ALS:
+            cmd = SI1145_CMD_ALS_AUTO;
+            break;
+        case SI1145_MEASUREMENT_PSALS:
+            cmd = SI1145_CMD_PSALS_AUTO;
+            break;
+        default:
+            return SI1145_FAILURE;
+    };
+
+    if (si1145_send_cmd(cmd, 0x0) != SI1145_OK ||
+        si1145_check_status() != SI1145_OK)
+    {
+        return SI1145_FAILURE;
+    }
+
+    return SI1145_OK;
+}
+
+SI1145_RC si1145_measurement_pause(SI1145_MEASUREMENT_QUANTITY quantity)
+{
+    SI1145_CMD cmd;
+    switch (quantity)
+    {
+        case SI1145_MEASUREMENT_PS:
+            cmd = SI1145_CMD_PS_PAUSE;
+            break;
+        case SI1145_MEASUREMENT_ALS:
+            cmd = SI1145_CMD_ALS_PAUSE;
+            break;
+        case SI1145_MEASUREMENT_PSALS:
+            cmd = SI1145_CMD_PSALS_PAUSE;
+            break;
+        default:
+            return SI1145_FAILURE;
+    };
+
+    if (si1145_send_cmd(cmd, 0x0) != SI1145_OK ||
+        si1145_check_status() != SI1145_OK)
+    {
+        return SI1145_FAILURE;
+    }
+
+    return SI1145_OK;
+}
+
+SI1145_RC si1145_measurement_force(SI1145_MEASUREMENT_QUANTITY quantity)
+{
+    SI1145_CMD cmd;
+    switch (quantity)
+    {
+        case SI1145_MEASUREMENT_PS:
+            cmd = SI1145_CMD_PS_FORCE;
+            break;
+        case SI1145_MEASUREMENT_ALS:
+            cmd = SI1145_CMD_ALS_FORCE;
+            break;
+        case SI1145_MEASUREMENT_PSALS:
+            cmd = SI1145_CMD_PSALS_FORCE;
+            break;
+        default:
+            return SI1145_FAILURE;
+    };
+
+    if (si1145_send_cmd(cmd, 0x0) != SI1145_OK ||
+        si1145_check_status() != SI1145_OK)
+    {
+        return SI1145_FAILURE;
+    }
+
+    return SI1145_OK;
+}
+
+SI1145_RC si1145_get_vis_data(uint16_t *vis_data)
+{
+    uint8_t data[2];
+    if (si1145_read_reg(SI1145_REG_VIS_DATA0, &data[0]) ||
+        si1145_read_reg(SI1145_REG_VIS_DATA1, &data[1]))
+    {
+        return SI1145_FAILURE;
+    }
+
+    *vis_data = ((uint16_t)data[1] << 8) | data[0];
     return SI1145_OK;
 }
 

@@ -24,7 +24,18 @@ typedef enum
     SI1145_OVRFLW_AUX  = 8
 } SI1145_RC;
 
+typedef enum
+{
+    SI1145_MEASUREMENT_PS     = 1,
+    SI1145_MEASUREMENT_ALS    = 2,
+    SI1145_MEASUREMENT_PSALS  = 3
+} SI1145_MEASUREMENT_QUANTITY;
+
 SI1145_RC si1145_init(const char *bus, uint8_t addr, uint8_t config_bitmap);
+SI1145_RC si1145_measurement_auto(SI1145_MEASUREMENT_QUANTITY quantity);
+SI1145_RC si1145_measurement_pause(SI1145_MEASUREMENT_QUANTITY quantity);
+SI1145_RC si1145_measurement_force(SI1145_MEASUREMENT_QUANTITY quantity);
+SI1145_RC si1145_get_vis_data(uint16_t *vis_data);
 SI1145_RC si1145_close(void);
 
 #endif /* _SI_1145_H */
