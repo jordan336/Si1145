@@ -6,30 +6,32 @@
 
 typedef enum
 {
-    SI1145_REG_PART_ID   = 0x00,
-    SI1145_REG_REV_ID    = 0x01,
-    SI1145_REG_SEQ_ID    = 0x02,
-    SI1145_REG_HW_KEY    = 0x07,
-    SI1145_REG_UCOEF0    = 0x13,
-    SI1145_REG_UCOEF1    = 0x14,
-    SI1145_REG_UCOEF2    = 0x15,
-    SI1145_REG_UCOEF3    = 0x16,
-    SI1145_REG_PARAM_WR  = 0x17,
-    SI1145_REG_COMMAND   = 0x18,
-    SI1145_REG_RESPONSE  = 0x20,
-    SI1145_REG_VIS_DATA0 = 0x22,
-    SI1145_REG_VIS_DATA1 = 0x23,
-    SI1145_REG_IR_DATA0  = 0x24,
-    SI1145_REG_IR_DATA1  = 0x25,
-    SI1145_REG_PS1_DATA0 = 0x26,
-    SI1145_REG_PS1_DATA1 = 0x27,
-    SI1145_REG_PS2_DATA0 = 0x28,
-    SI1145_REG_PS2_DATA1 = 0x29,
-    SI1145_REG_PS3_DATA0 = 0x2A,
-    SI1145_REG_PS3_DATA1 = 0x2B,
-    SI1145_REG_UV_DATA0  = 0x2C,
-    SI1145_REG_UV_DATA1  = 0x2D,
-    SI1145_REG_PARAM_RD  = 0x2E,
+    SI1145_REG_PART_ID    = 0x00,
+    SI1145_REG_REV_ID     = 0x01,
+    SI1145_REG_SEQ_ID     = 0x02,
+    SI1145_REG_HW_KEY     = 0x07,
+    SI1145_REG_MEAS_RATE0 = 0x08,
+    SI1145_REG_MEAS_RATE1 = 0x09,
+    SI1145_REG_UCOEF0     = 0x13,
+    SI1145_REG_UCOEF1     = 0x14,
+    SI1145_REG_UCOEF2     = 0x15,
+    SI1145_REG_UCOEF3     = 0x16,
+    SI1145_REG_PARAM_WR   = 0x17,
+    SI1145_REG_COMMAND    = 0x18,
+    SI1145_REG_RESPONSE   = 0x20,
+    SI1145_REG_VIS_DATA0  = 0x22,
+    SI1145_REG_VIS_DATA1  = 0x23,
+    SI1145_REG_IR_DATA0   = 0x24,
+    SI1145_REG_IR_DATA1   = 0x25,
+    SI1145_REG_PS1_DATA0  = 0x26,
+    SI1145_REG_PS1_DATA1  = 0x27,
+    SI1145_REG_PS2_DATA0  = 0x28,
+    SI1145_REG_PS2_DATA1  = 0x29,
+    SI1145_REG_PS3_DATA0  = 0x2A,
+    SI1145_REG_PS3_DATA1  = 0x2B,
+    SI1145_REG_UV_DATA0   = 0x2C,
+    SI1145_REG_UV_DATA1   = 0x2D,
+    SI1145_REG_PARAM_RD   = 0x2E,
 } SI1145_REG;
 
 typedef enum
@@ -66,6 +68,10 @@ typedef enum
 #define SI1145_CONST_UCOEF2          0x01
 #define SI1145_CONST_UCOEF3          0x00
 #define SI1145_CONST_MAX_CMD_RETRIES 0x10
+#define SI1145_CONST_MEAS_RATE0_SLOW 0x80
+#define SI1145_CONST_MEAS_RATE1_SLOW 0x3E /* 0x3E80 -> 500 ms / 0.03125 ms */
+#define SI1145_CONST_MEAS_RATE0_FAST 0x80
+#define SI1145_CONST_MEAS_RATE1_FAST 0x0C /* 0x0C80 -> 100 ms / 0.03125 ms */
 
 #define SI1145_ISSET(map, bit) ((map & bit) != 0)
 
@@ -80,6 +86,7 @@ static SI1145_RC si1145_read_ram(SI1145_RAM ram, uint8_t *data);
 static SI1145_RC si1145_write_ram(SI1145_RAM ram, uint8_t data);
 static SI1145_RC si1145_check_status(void);
 static SI1145_RC si1145_send_cmd(SI1145_CMD cmd, uint8_t cmd_low_bits);
+
 
 static SI1145_RC si1145_check_reg(SI1145_REG reg, uint8_t expected)
 {
@@ -310,6 +317,28 @@ SI1145_RC si1145_init(const char *bus, uint8_t addr, uint8_t config_bitmap)
             si1145_write_check_reg(SI1145_REG_UCOEF3, SI1145_CONST_UCOEF3) != SI1145_OK)
         {
             printf("Failed to initialize SI1145 (%s)\n", "UCOEF");
+            return SI1145_FAILURE;
+        }
+    }
+
+    /* Slow measurement rate */
+    if (SI1145_ISSET(config_bitmap, SI1145_CONFIG_BIT_MEAS_RATE_SLOW))
+    {
+        if (si1145_write_check_reg(SI1145_REG_MEAS_RATE0, SI1145_CONST_MEAS_RATE0_SLOW) != SI1145_OK ||
+            si1145_write_check_reg(SI1145_REG_MEAS_RATE1, SI1145_CONST_MEAS_RATE1_SLOW) != SI1145_OK)
+        {
+            printf("Failed to initialize SI1145 (%s)\n", "MEAS_RATE slow");
+            return SI1145_FAILURE;
+        }
+    }
+
+    /* Fast measurement rate */
+    if (SI1145_ISSET(config_bitmap, SI1145_CONFIG_BIT_MEAS_RATE_FAST))
+    {
+        if (si1145_write_check_reg(SI1145_REG_MEAS_RATE0, SI1145_CONST_MEAS_RATE0_FAST) != SI1145_OK ||
+            si1145_write_check_reg(SI1145_REG_MEAS_RATE1, SI1145_CONST_MEAS_RATE1_FAST) != SI1145_OK)
+        {
+            printf("Failed to initialize SI1145 (%s)\n", "MEAS_RATE fast");
             return SI1145_FAILURE;
         }
     }

@@ -16,7 +16,7 @@ int main(int argv, char **argc)
     uint16_t ps3_data;
     uint16_t uv_data;
 
-    if (si1145_init(I2C_BUS, I2C_ADDR, SI1145_CONFIG_BIT_ALS | SI1145_CONFIG_BIT_UV) != SI1145_OK)
+    if (si1145_init(I2C_BUS, I2C_ADDR, SI1145_CONFIG_BIT_ALS | SI1145_CONFIG_BIT_UV | SI1145_CONFIG_BIT_MEAS_RATE_SLOW) != SI1145_OK)
     {
         return 1;
     }
