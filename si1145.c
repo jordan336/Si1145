@@ -187,6 +187,8 @@ static SI1145_RC si1145_send_cmd(SI1145_CMD cmd, uint8_t cmd_low_bits)
         return SI1145_FAILURE;
     }
 
+    /* Check for non-zero response register contents. */
+
     return SI1145_OK;
 }
 
@@ -210,7 +212,7 @@ SI1145_RC si1145_init(const char *bus, uint8_t addr, uint8_t config_bitmap)
         return SI1145_FAILURE;
     }
 
-    /* TODO: add to platform spa library */
+    /* TODO: add sleep to platform spa library */
     sleep(1);
 
     /* Check device */
@@ -278,6 +280,7 @@ SI1145_RC si1145_init(const char *bus, uint8_t addr, uint8_t config_bitmap)
         return SI1145_FAILURE;
     }
 
+    /* TODO: Remove */
     uint8_t data;
     si1145_read_ram(SI1145_RAM_CHLIST, &data);
     printf("CHLIST: 0x%x\n", data);
