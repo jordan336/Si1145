@@ -416,6 +416,38 @@ SI1145_RC si1145_get_vis_data(uint16_t *vis_data)
     return SI1145_OK;
 }
 
+SI1145_RC si1145_get_ir_data(uint16_t *ir_data)
+{
+    uint8_t data[2];
+    if (si1145_read_reg(SI1145_REG_IR_DATA0, &data[0]) ||
+        si1145_read_reg(SI1145_REG_IR_DATA1, &data[1]))
+    {
+        return SI1145_FAILURE;
+    }
+
+    *ir_data = ((uint16_t)data[1] << 8) | data[0];
+    return SI1145_OK;
+}
+
+SI1145_RC si1145_get_ps_data(uint16_t *ps1_data, uint16_t *ps2_data, uint16_t *ps3_data)
+{
+    uint8_t data[6];
+    if (si1145_read_reg(SI1145_REG_PS1_DATA0, &data[0]) ||
+        si1145_read_reg(SI1145_REG_PS1_DATA1, &data[1]) ||
+        si1145_read_reg(SI1145_REG_PS2_DATA0, &data[2]) ||
+        si1145_read_reg(SI1145_REG_PS2_DATA1, &data[3]) ||
+        si1145_read_reg(SI1145_REG_PS3_DATA0, &data[4]) ||
+        si1145_read_reg(SI1145_REG_PS3_DATA1, &data[5]))
+    {
+        return SI1145_FAILURE;
+    }
+
+    *ps1_data = ((uint16_t)data[1] << 8) | data[0];
+    *ps2_data = ((uint16_t)data[3] << 8) | data[2];
+    *ps3_data = ((uint16_t)data[5] << 8) | data[4];
+    return SI1145_OK;
+}
+
 SI1145_RC si1145_close()
 {
     i2c_spa_close(&params);
