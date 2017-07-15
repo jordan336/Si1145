@@ -14,6 +14,7 @@ int main(int argv, char **argc)
     uint16_t ps1_data;
     uint16_t ps2_data;
     uint16_t ps3_data;
+    uint16_t uv_data;
 
     if (si1145_init(I2C_BUS, I2C_ADDR, SI1145_CONFIG_BIT_ALS | SI1145_CONFIG_BIT_UV) != SI1145_OK)
     {
@@ -44,7 +45,8 @@ int main(int argv, char **argc)
 
     if (si1145_get_vis_data(&vis_data) != SI1145_OK ||
         si1145_get_ir_data(&ir_data) != SI1145_OK ||
-        si1145_get_ps_data(&ps1_data, &ps2_data, &ps3_data) != SI1145_OK)
+        si1145_get_ps_data(&ps1_data, &ps2_data, &ps3_data) != SI1145_OK ||
+        si1145_get_uv_data(&uv_data) != SI1145_OK)
     {
         return 1; 
     }
@@ -53,6 +55,7 @@ int main(int argv, char **argc)
     printf("PS1_DATA: 0x%x\n", ps1_data);
     printf("PS2_DATA: 0x%x\n", ps2_data);
     printf("PS3_DATA: 0x%x\n", ps3_data);
+    printf("UV_DATA: 0x%x\n", uv_data);
     
     si1145_close();
 

@@ -27,6 +27,8 @@ typedef enum
     SI1145_REG_PS2_DATA1 = 0x29,
     SI1145_REG_PS3_DATA0 = 0x2A,
     SI1145_REG_PS3_DATA1 = 0x2B,
+    SI1145_REG_UV_DATA0  = 0x2C,
+    SI1145_REG_UV_DATA1  = 0x2D,
     SI1145_REG_PARAM_RD  = 0x2E,
 } SI1145_REG;
 
@@ -445,6 +447,19 @@ SI1145_RC si1145_get_ps_data(uint16_t *ps1_data, uint16_t *ps2_data, uint16_t *p
     *ps1_data = ((uint16_t)data[1] << 8) | data[0];
     *ps2_data = ((uint16_t)data[3] << 8) | data[2];
     *ps3_data = ((uint16_t)data[5] << 8) | data[4];
+    return SI1145_OK;
+}
+
+SI1145_RC si1145_get_uv_data(uint16_t *uv_data)
+{
+    uint8_t data[2];
+    if (si1145_read_reg(SI1145_REG_UV_DATA0, &data[0]) ||
+        si1145_read_reg(SI1145_REG_UV_DATA1, &data[1]))
+    {
+        return SI1145_FAILURE;
+    }
+
+    *uv_data = ((uint16_t)data[1] << 8) | data[0];
     return SI1145_OK;
 }
 

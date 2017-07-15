@@ -38,6 +38,7 @@ SI1145_RC si1145_measurement_force(SI1145_MEASUREMENT_QUANTITY quantity);
 SI1145_RC si1145_get_vis_data(uint16_t *vis_data);
 SI1145_RC si1145_get_ir_data(uint16_t *ir_data);
 SI1145_RC si1145_get_ps_data(uint16_t *ps1_data, uint16_t *ps2_data, uint16_t *ps3_data);
+SI1145_RC si1145_get_uv_data(uint16_t *uv_data);
 SI1145_RC si1145_close(void);
 
 #endif /* _SI_1145_H */
