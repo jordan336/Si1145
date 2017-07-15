@@ -34,16 +34,17 @@ typedef enum
     SI1145_CMD_PARAM_SET = 0xA0
 } SI1145_CMD;
 
-#define SI1145_CONST_REV_ID    0x00
-#define SI1145_CONST_SEQ_ID    0x08
-#define SI1145_CONST_HW_KEY    0x17
-#define SI1145_CONST_PART_ID   0x45
-#define SI1145_CONST_VIS_RANGE 0x20
-#define SI1145_CONST_IR_RANGE  0x20
-#define SI1145_CONST_UCOEF0    0x7B
-#define SI1145_CONST_UCOEF1    0x6B
-#define SI1145_CONST_UCOEF2    0x01
-#define SI1145_CONST_UCOEF3    0x00
+#define SI1145_CONST_REV_ID          0x00
+#define SI1145_CONST_SEQ_ID          0x08
+#define SI1145_CONST_HW_KEY          0x17
+#define SI1145_CONST_PART_ID         0x45
+#define SI1145_CONST_VIS_RANGE       0x20
+#define SI1145_CONST_IR_RANGE        0x20
+#define SI1145_CONST_UCOEF0          0x7B
+#define SI1145_CONST_UCOEF1          0x6B
+#define SI1145_CONST_UCOEF2          0x01
+#define SI1145_CONST_UCOEF3          0x00
+#define SI1145_CONST_MAX_CMD_RETRIES 0x10
 
 #define SI1145_ISSET(map, bit) ((map & bit) != 0)
 
@@ -179,7 +180,10 @@ static SI1145_RC si1145_check_status(void)
 static SI1145_RC si1145_send_cmd(SI1145_CMD cmd, uint8_t cmd_low_bits)
 {
     uint8_t command_reg_val = (cmd | cmd_low_bits);
+    uint8_t data = 0x0;
+    uint8_t command_retries = 0;
 
+    /* Reset command register, then set command register. */
     if (si1145_write_check_reg(SI1145_REG_COMMAND, 0x00) != SI1145_OK ||
         si1145_write_reg(SI1145_REG_COMMAND, command_reg_val) != SI1145_OK )
     {
@@ -187,7 +191,23 @@ static SI1145_RC si1145_send_cmd(SI1145_CMD cmd, uint8_t cmd_low_bits)
         return SI1145_FAILURE;
     }
 
-    /* Check for non-zero response register contents. */
+    /* Wait for non-zero response register contents. */
+    if (cmd != SI1145_CMD_RESET)
+    {
+        do
+        {
+            if (si1145_read_reg(SI1145_REG_RESPONSE, &data) != SI1145_OK)
+            {
+                return SI1145_FAILURE;
+            }
+            if (++command_retries >= SI1145_CONST_MAX_CMD_RETRIES)
+            {
+                printf("Timed out completing command: 0x%x\n", cmd);
+                return SI1145_FAILURE;
+            }
+        } 
+        while (data == 0x0);
+    }
 
     return SI1145_OK;
 }
