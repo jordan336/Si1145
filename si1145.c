@@ -296,18 +296,22 @@ SI1145_RC si1145_init(const char *bus, uint8_t addr, uint8_t config_bitmap)
     {
         chlist |= 0x80;
 
-        /* Set VIS_RANGE */
-        if (si1145_write_ram(SI1145_RAM_ALS_VIS_ADC_MISC, SI1145_CONST_VIS_RANGE) != SI1145_OK)
+        /* Outdoors operation */
+        if (!SI1145_ISSET(config_bitmap, SI1145_CONFIG_BIT_INDOORS))
         {
-            printf("Failed to initialize SI1145 (%s)\n", "ALS VIS Range");
-            return SI1145_FAILURE;
-        }
+            /* Set VIS_RANGE */
+            if (si1145_write_ram(SI1145_RAM_ALS_VIS_ADC_MISC, SI1145_CONST_VIS_RANGE) != SI1145_OK)
+            {
+                printf("Failed to initialize SI1145 (%s)\n", "ALS VIS Range");
+                return SI1145_FAILURE;
+            }
 
-        /* Set IR_RANGE */
-        if (si1145_write_ram(SI1145_RAM_ALS_IR_ADC_MISC, SI1145_CONST_IR_RANGE) != SI1145_OK)
-        {
-            printf("Failed to initialize SI1145 (%s)\n", "ALS IR Range");
-            return SI1145_FAILURE;
+            /* Set IR_RANGE */
+            if (si1145_write_ram(SI1145_RAM_ALS_IR_ADC_MISC, SI1145_CONST_IR_RANGE) != SI1145_OK)
+            {
+                printf("Failed to initialize SI1145 (%s)\n", "ALS IR Range");
+                return SI1145_FAILURE;
+            }
         }
 
         /* Default UV calibration coefficients */

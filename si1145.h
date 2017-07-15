@@ -12,6 +12,7 @@
 #define SI1145_CONFIG_BIT_UV             (SI1145_CONFIG_BIT_PS << 2)   /* UV calculation */
 #define SI1145_CONFIG_BIT_MEAS_RATE_FAST (SI1145_CONFIG_BIT_PS << 3)   /* 100ms measurement rate */
 #define SI1145_CONFIG_BIT_MEAS_RATE_SLOW (SI1145_CONFIG_BIT_PS << 4)   /* 500ms measurement rate */
+#define SI1145_CONFIG_BIT_INDOORS        (SI1145_CONFIG_BIT_PS << 5)   /* Indoors operation */
 
 typedef enum
 {
