@@ -2,7 +2,7 @@
 ### Jordan Ebel
 
 This is a library for the Si1145 proximity / UV / ambient light sensor.
-This library depends only on the i2c_spa (I2C Simple, Platform-Agnostic)
+This library depends only on the io_spa (I/O Simple Platform Abstraction)
 library.  This library will work correctly on any platform that is 
-supported by the i2c_spa library.
+supported by the io_spa library.
 

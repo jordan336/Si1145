@@ -1,11 +1,9 @@
-/*
- *
- */
+/* Jordan Ebel */
 
 #ifndef _SI_1145_H
 #define _SI_1145_H
 
-#include "i2c_spa.h"
+#include "io_spa_i2c.h"
 
 #define SI1145_CONFIG_BIT_PS                                     0x1   /* Proximity sensor */
 #define SI1145_CONFIG_BIT_ALS            (SI1145_CONFIG_BIT_PS << 1)   /* Ambient light sensor */

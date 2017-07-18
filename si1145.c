@@ -1,6 +1,4 @@
-/*
- *
- */
+/* Jordan Ebel */
 
 #include "si1145.h"
 
@@ -75,7 +73,7 @@ typedef enum
 
 #define SI1145_ISSET(map, bit) ((map & bit) != 0)
 
-static I2C_SPA_PARAMS params;
+static IO_SPA_I2C_PARAMS params;
 
 static SI1145_RC si1145_check_reg(SI1145_REG reg, uint8_t expected);
 static SI1145_RC si1145_read_reg(SI1145_REG reg, uint8_t *data);
@@ -92,7 +90,7 @@ static SI1145_RC si1145_check_reg(SI1145_REG reg, uint8_t expected)
 {
     uint8_t data;
 
-    if (si1145_read_reg(reg, &data) != I2C_SPA_OK)
+    if (si1145_read_reg(reg, &data) != IO_SPA_OK)
     {
         return SI1145_FAILURE;
     }
@@ -102,14 +100,14 @@ static SI1145_RC si1145_check_reg(SI1145_REG reg, uint8_t expected)
 
 static SI1145_RC si1145_read_reg(SI1145_REG reg, uint8_t *data)
 {
-    return i2c_spa_read(&params, reg, 1, data);
+    return io_spa_i2c_read(&params, reg, 1, data);
 }
 
 static SI1145_RC si1145_write_reg(SI1145_REG reg, uint8_t data)
 {
     uint8_t read_data;
 
-    if (i2c_spa_write(&params, reg, 1, &data) != I2C_SPA_OK)
+    if (io_spa_i2c_write(&params, reg, 1, &data) != IO_SPA_OK)
     {
         return SI1145_FAILURE;
     }
@@ -248,7 +246,7 @@ SI1145_RC si1145_init(const char *bus, uint8_t addr, uint8_t config_bitmap)
     params.bus = bus;
 #endif
 
-    if (i2c_spa_init(&params))
+    if (io_spa_i2c_init(&params))
     {
         return SI1145_FAILURE;
     }
@@ -498,7 +496,7 @@ SI1145_RC si1145_get_uv_data(uint16_t *uv_data)
 
 SI1145_RC si1145_close()
 {
-    i2c_spa_close(&params);
+    io_spa_i2c_close(&params);
     return SI1145_OK;
 }
 
